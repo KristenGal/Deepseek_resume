@@ -1,11 +1,10 @@
 import requests
 import json
-
+import asyncio
+from pdf_transformer import html_to_pdf
 
 def deepseek_api(d):
-    info = ""
-    for k, v in d.items():
-        info = info + str(k) + ": " + str(v) + "\n"
+    info = "\n".join([f"{k}: {v}" for k, v in d.items()])
 
     content = f"""Create an HTML file for a professional resume template. The resume should have the following sections. Do not provide me with any information besides Html file:
 
@@ -66,6 +65,7 @@ use this information.
         r = response.json()["choices"][0]["message"]["content"].split("```")
         for el in r:
             if "<!DOCTYPE html>" in el:
+                print(el)
                 return el.replace("html\n", "")
     except Exception as ex:
         print(f"Error! Your exception is {ex}")
@@ -75,9 +75,11 @@ use this information.
 # a = {"Name": "Alex Pyvovarov",
 # "Address": "171 queen st",
 # "Email": "alalalalal@gmail.com",
+# "Phone": "012 345 6789",
 # "job titles": "softwere enginer, team lead",
 # "skills": "Python, Java, Linux, C++, Git, SQL, HTML, teamworking, networking, hard working, social",
 # "Education": "computer science in harvard",
 # "Experience": "5 years in Apple, internship in Microsoft"}
 
-# deepseek_api(a)
+# d = deepseek_api(a)
+# asyncio.run(html_to_pdf(d, 'resume.pdf'))

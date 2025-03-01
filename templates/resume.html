@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center">
+    <p>Your resume is ready! Download it using the button below</p>
+    <a href="{{ url_for('download_pdf') }}" class="btn btn-primary">Download PDF</a>
+</div>
+{% endblock %}
