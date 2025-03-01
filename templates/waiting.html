@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script>
+    async function checkStatus() {
+        let response = await fetch("{{ url_for('check_status') }}");
+        let data = await response.json();
+        if (data.ready) {
+            window.location.href = "{{ url_for('resume') }}";
+        } else {
+            setTimeout(checkStatus, 10000);
+        }
+    }
+
+    window.onload = checkStatus;
+</script>
+
+<div class="text-center">
+    <p>We are creating your resume. Please wait a few minutes</p>
+    <img src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDh1ZzE3ZnM4Y3I4Z29xY2ZpbjExeWEwcjd0dWx2MHI3dG8wd2FsMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l3nWhI38IWDofyDrW/giphy.gif" 
+    alt="loading" 
+    width="300">
+</div>
+{% endblock %}

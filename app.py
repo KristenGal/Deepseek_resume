@@ -1,5 +1,6 @@
 import asyncio
-from flask import Flask, render_template, redirect, url_for, session, send_file
+from flask import Flask, render_template, redirect, url_for, send_file
+from flask_caching import Cache
 from forms import ResumeForm
 from api import deepseek_api
 from pdf_transformer import html_to_pdf
@@ -7,6 +8,10 @@ from pdf_transformer import html_to_pdf
 
 app = Flask(__name__)
 app.secret_key = "XPoFGUfCaV5EX4-US-BE7N-E7jVZEZn18zzSipMhen0"
+
+app.config["CACHE_TYPE"] = "simple"
+cache = Cache(app)
+cache.init_app(app)
 
 
 @app.route("/")
@@ -18,24 +23,45 @@ def index():
 def form():
     form = ResumeForm()
     if form.validate_on_submit():
-        generated_html = deepseek_api(form.data)
-        if generated_html:
-            session['generated_html'] = generated_html
-            return redirect(url_for("resume"))
+        cache.set('generated_html', None)
+
+        def generate_resume(data):
+            generated_html = deepseek_api(data)
+            if generated_html:
+                cache.set('generated_html', generated_html)
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_in_executor(None, generate_resume, form.data)
+
+        return redirect(url_for("waiting"))
+
     return render_template("form.html", form=form)
+
+
+@app.route("/waiting/")
+def waiting():
+    return render_template("waiting.html")
+
+
+@app.route("/check_status/")
+def check_status():
+    return {"ready": cache.get('generated_html') is not None}
 
 
 @app.route("/resume/")
 def resume():
-    html_code = session.get('generated_html')
+    html_code = cache.get('generated_html')
+    if not html_code:
+        return "Error: Resume is not ready yet", 400
     return render_template("resume.html", html_code=html_code)
 
 
 @app.route("/download_pdf/")
 def download_pdf():
-    html_code = session.get('generated_html')
+    html_code = cache.get('generated_html')
     if not html_code:
-        return "Error: no HTML-code", 400
+        return "Error: no HTML code", 400
     pdf_data = asyncio.run(html_to_pdf(html_code))
     return send_file(pdf_data, as_attachment=True, download_name="resume.pdf", mimetype="application/pdf")
 
