@@ -1,13 +1,17 @@
+import os
 import asyncio
 from flask import Flask, render_template, redirect, url_for, send_file
 from flask_caching import Cache
 from forms import ResumeForm
 from api import deepseek_api
 from pdf_transformer import html_to_pdf
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 app = Flask(__name__)
-app.secret_key = "XPoFGUfCaV5EX4-US-BE7N-E7jVZEZn18zzSipMhen0"
+app.secret_key = os.getenv("SECRET_KEY")
 
 app.config["CACHE_TYPE"] = "simple"
 cache = Cache(app)
@@ -46,7 +50,11 @@ def waiting():
 
 @app.route("/check_status/")
 def check_status():
-    return {"ready": cache.get('generated_html') is not None}
+    status = cache.get("generated_html")
+    if status == "error":
+        return {"error": "An error occurred while generating the resume. Please try again"}
+    return {"ready": status is not None}
+
 
 
 @app.route("/resume/")

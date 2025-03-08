@@ -5,6 +5,17 @@
     async function checkStatus() {
         let response = await fetch("{{ url_for('check_status') }}");
         let data = await response.json();
+        
+        if (data.error) {
+            document.body.innerHTML = "";
+
+            let errorMessage = document.createElement("p");
+            errorMessage.textContent = data.error;
+            
+            document.body.appendChild(errorMessage);
+            return;
+        }
+
         if (data.ready) {
             window.location.href = "{{ url_for('resume') }}";
         } else {
