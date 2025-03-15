@@ -47,7 +47,6 @@ def deepseek_api(d):
         },
         data=json.dumps({
             "model": "deepseek/deepseek-r1:free",
-            # "model": "deepseek/deepseek-r1",
             "messages": [
             {
                 "role": "user",
@@ -58,12 +57,10 @@ def deepseek_api(d):
         })
         )
         
-        print(response)
         response.raise_for_status()
         r = response.json()["choices"][0]["message"]["content"].split("```")
         for el in r:
             if "<!DOCTYPE html>" in el and "</html>" in el:
-                print(el)
                 return el.replace("html\n", "")
             
     except requests.exceptions.RequestException as ex:

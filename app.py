@@ -56,7 +56,6 @@ def check_status():
     return {"ready": status is not None}
 
 
-
 @app.route("/resume/")
 def resume():
     html_code = cache.get('generated_html')
@@ -72,7 +71,6 @@ def download_pdf():
         return "Error: no HTML code", 400
     pdf_data = asyncio.run(html_to_pdf(html_code))
     return send_file(pdf_data, as_attachment=True, download_name="resume.pdf", mimetype="application/pdf")
-
 
 
 
